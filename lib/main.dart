@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'screens/splash_screen.dart';
-import 'screens/sign_in_screen.dart';
-import 'screens/sign_up_screen.dart';
-import 'screens/home_screen.dart';
+import 'package:get/get.dart';
+import 'constants/app_colors.dart';
+import 'routes/app_pages.dart';
+import 'services/firebase_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FirebaseService.init();
   runApp(const SmartCanteenApp());
 }
 
@@ -13,27 +15,20 @@ class SmartCanteenApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const tealColor = Color(0xFF008C8C);
-
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Smart Canteen',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Poppins',
         colorScheme: ColorScheme.fromSeed(
-          seedColor: tealColor,
-          primary: tealColor,
+          seedColor: AppColors.primaryTeal,
+          primary: AppColors.primaryTeal,
         ),
         scaffoldBackgroundColor: Colors.white,
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const SplashScreen(),
-        '/signin': (context) => const SignInScreen(),
-        '/signup': (context) => const SignUpScreen(),
-        '/home': (context) => const HomeScreen(),
-      },
+      initialRoute: AppPages.initial,
+      getPages: AppPages.routes,
     );
   }
 }
