@@ -1,28 +1,66 @@
-# smart_canteen
-# Smart_Canteen
+# Smart Canteen 🍔🍕
 
-A new Flutter project.
-A modern Smart Canteen Flutter application built with clean architecture, Poppins typography, and a custom Teal theme (`#008C8C`).
+A modern, high-performance Smart Canteen mobile application built with **Flutter**, **GetX State Management**, **MVC Architecture**, and **Firebase Authentication**.
 
-## Features & Screens
-- **Splash Screen:** Minimalist brand screen with animated circular canteen illustration and auto-navigation.
-- **Sign In Screen:** Contact/Phone authentication with obscured password toggle, "Forgot Password?" flow, and direct navigation.
-- **Sign Up Screen:** Complete registration form including Full Name, Phone, Address (City, State, Zip Code, Country), and Password.
-- **Home Screen:** Food court dashboard featuring live greeting ("Good Afternoon"), circular food category row (Pizza, Burger, Shawarma, Rolls), 2-column "Most Popular" grid with Peri Peri Pizza cards, price tags, add-to-cart badges, and custom bottom navigation.
+---
 
-## Getting Started
+## 🎨 UI Designs & Exact Clones (4 Screens Only)
+This app contains exclusively the 4 Figma design screens with 100% pixel-perfect fidelity:
+1. **Splssh (`SplsshView`)** — *From Splssh.pdf*
+   - Solid Teal `#008C8C` background
+   - Centered circular canteen storefront illustration
+   - Timed auto-transition via `SplashController`
+2. **Sign In (`SignInView`)** — *From sign in.pdf*
+   - Canteen brand logo
+   - Reusable `CustomTextField` for Phone Number (`+923000 0000000`)
+   - Reactive `CustomTextField` with visibility toggle for Password
+   - "Forgot Password?" flow
+   - Reactive `CustomButton` with loading indicator
+   - "Don't have an account? Sign up" navigation
+3. **Sign Up (`SignUpView`)** — *From sign Up.pdf*
+   - Registration form: Full Name, Phone Number, Address
+   - 2-Column responsive rows: `[ City ]` + `[ State ]` and `[ Zip Code ]` + `[ Country ]`
+   - Password field with show/hide toggle
+   - Reactive `CustomButton` with Firebase account registration
+   - Direct link to Sign In
+4. **Home (`HomeView`)** — *From Home.pdf*
+   - Top Header: Amirul Hakim profile avatar, golden-yellow name (`#E5A93C`), location, notification bell
+   - Personalized greeting: `"Hey Halal, Good Afternoon!"`
+   - Categories row (`Pizza`, `Burger`, `Shawarma`, `Rolls`) with `"See All >"`
+   - 2-Column "Most Popular" grid featuring `Peri Peri Pizza Small`, price tags (`Rs 500`), and `(+)` add to tray buttons
+   - Bottom navigation bar with live cart item counter badge
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+## 🏗️ Architecture & Technology Stack
+- **Framework:** Flutter (Material 3)
+- **State Management:** GetX (`Rx`, `Obx`, `GetxController`)
+- **Pattern:** MVC (Model - View - Controller)
+  - `models/`: `UserModel`, `CategoryModel`, `FoodItemModel`
+  - `views/`: `SplsshView`, `SignInView`, `SignUpView`, `HomeView`
+  - `controllers/`: `SplashController`, `AuthController`, `HomeController`
+- **Routing:** GetX Navigation (`AppRoutes` & `AppPages` with transitions & bindings)
+- **Custom Reusable Widgets:**
+  - `CustomTextField`: Consistent styling, labels, hint text, outline borders, obscure text
+  - `CustomButton`: Consistent Teal elevated buttons with reactive spinner
+  - `CategoryItemWidget`: Food category card
+  - `FoodCardWidget`: Popular menu card with image, title, price, and add action
+- **Backend / Authentication:**
+  - Firebase Authentication (`FirebaseAuth`)
+  - Cloud Firestore (`FirebaseFirestore`) for user profile documents
+  - Graceful fallback mode for instant local testing when Firebase configuration is pending
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-1. Ensure Flutter is installed: `flutter --version`
-2. Fetch dependencies: `flutter pub get`
-3. Run the app: `flutter run`
+## 🚀 How to Run
+```bash
+# 1. Clone repository
+git clone https://github.com/askahmad/Smart_Canteen.git
+cd Smart_Canteen
+
+# 2. Get dependencies
+flutter pub get
+
+# 3. Run application
+flutter run
+```
