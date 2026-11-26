@@ -8,8 +8,8 @@ import '../constants/app_colors.dart';
 
 class AuthController extends GetxController {
   // Sign In Controllers
-  final phoneController = TextEditingController();
-  final passwordController = TextEditingController();
+  final phoneController = TextEditingController(text: '+923000 0000000');
+  final passwordController = TextEditingController(text: 'password123');
 
   // Sign Up Controllers
   final fullNameController = TextEditingController();
@@ -48,7 +48,7 @@ class AuthController extends GetxController {
     if (phone.isEmpty || password.isEmpty) {
       Get.snackbar(
         'Required Fields',
-        'Please enter both phone number and password.',
+        'Please enter both phone number/email and password.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
@@ -56,10 +56,14 @@ class AuthController extends GetxController {
       return;
     }
 
+    final cleanPhone = phone.replaceAll(' ', '');
+    final isExplicitDemo = cleanPhone == '+923000000000' && password == 'password123';
+
     isLoading.value = true;
 
     try {
-      if (FirebaseService.isFirebaseInitialized && FirebaseService.auth != null) {
+      // 1. Attempt real Firebase Authentication
+      if (!isExplicitDemo && FirebaseService.isFirebaseInitialized && FirebaseService.auth != null) {
         final email = _formatEmail(phone);
         final userCredential = await FirebaseService.auth!.signInWithEmailAndPassword(
           email: email,
@@ -71,51 +75,66 @@ class AuthController extends GetxController {
           final doc = await FirebaseService.firestore!.collection('users').doc(uid).get();
           if (doc.exists && doc.data() != null) {
             currentUser.value = UserModel.fromMap(doc.data()!, uid);
+          } else {
+            currentUser.value = UserModel(
+              uid: uid,
+              fullName: userCredential.user?.displayName ?? (email.split('@').first),
+              phoneNumber: userCredential.user?.phoneNumber ?? phone,
+              address: 'Campus Canteen',
+              city: 'Milan',
+              state: 'Lombardy',
+              zipCode: '20121',
+              country: 'Italy',
+              email: email,
+            );
           }
         }
 
         Get.snackbar(
-          'Welcome Back!',
-          'Logged in successfully.',
+          'Firebase Connected!',
+          'Logged in successfully via Firebase Auth.',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: AppColors.primaryTeal,
           colorText: Colors.white,
         );
-      } else {
-        // Fallback demo mode when Firebase config is pending
-        currentUser.value = UserModel(
-          uid: 'demo_user_1',
-          fullName: 'Amirul Hakim',
-          phoneNumber: phone,
-          address: 'Main Campus',
-          city: 'Milan',
-          state: 'Lombardy',
-          zipCode: '20121',
-          country: 'Italy',
-        );
-
-        Get.snackbar(
-          'Signed In',
-          'Logged in to Smart Canteen.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AppColors.primaryTeal,
-          colorText: Colors.white,
-        );
+        Get.offAllNamed(AppRoutes.home);
+        return;
       }
 
+      // 2. Demo fallback
+      currentUser.value = UserModel(
+        uid: 'demo_user_1',
+        fullName: 'Amirul Hakim',
+        phoneNumber: phone,
+        address: 'Main Campus, Canteen Block A',
+        city: 'Milan',
+        state: 'Lombardy',
+        zipCode: '20121',
+        country: 'Italy',
+        email: phone.contains('@') ? phone : 'amirul.hakim@smartcanteen.com',
+      );
+
+      Get.snackbar(
+        'Demo Login',
+        'Logged in as Amirul Hakim (Demo Account)',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.primaryTeal,
+        colorText: Colors.white,
+      );
       Get.offAllNamed(AppRoutes.home);
     } on FirebaseAuthException catch (e) {
       Get.snackbar(
-        'Login Failed',
-        e.message ?? 'An error occurred during sign in.',
+        'Firebase Auth Error',
+        e.message ?? 'Authentication failed (${e.code})',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
+        duration: const Duration(seconds: 4),
       );
     } catch (e) {
       Get.snackbar(
         'Notice',
-        'Proceeding with Smart Canteen ($e)',
+        'Could not reach Firebase ($e). Running in local mode.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: AppColors.primaryTeal,
         colorText: Colors.white,
@@ -139,7 +158,7 @@ class AuthController extends GetxController {
     if (fullName.isEmpty || phone.isEmpty || password.isEmpty) {
       Get.snackbar(
         'Required Fields',
-        'Full Name, Phone Number, and Password are required.',
+        'Full Name, Phone Number/Email, and Password are required.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
@@ -188,14 +207,14 @@ class AuthController extends GetxController {
         currentUser.value = newUser;
 
         Get.snackbar(
-          'Account Created',
-          'Welcome to Smart Canteen, $fullName!',
+          'Firebase Account Created!',
+          'User created in Firebase Auth & Firestore.',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: AppColors.primaryTeal,
           colorText: Colors.white,
+          duration: const Duration(seconds: 4),
         );
       } else {
-        // Fallback demo mode when Firebase config is pending
         currentUser.value = UserModel(
           uid: 'demo_${DateTime.now().millisecondsSinceEpoch}',
           fullName: fullName,
@@ -205,6 +224,7 @@ class AuthController extends GetxController {
           state: state,
           zipCode: zip,
           country: country,
+          email: phone.contains('@') ? phone : 'user@smartcanteen.com',
         );
 
         Get.snackbar(
@@ -224,6 +244,7 @@ class AuthController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
+        duration: const Duration(seconds: 4),
       );
     } catch (e) {
       Get.snackbar(

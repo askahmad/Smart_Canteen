@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_assets.dart';
 import '../controllers/home_controller.dart';
+import '../routes/app_routes.dart';
 import '../widgets/category_item_widget.dart';
+import '../widgets/custom_bottom_nav.dart';
 import '../widgets/food_card_widget.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -11,6 +13,10 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
+    if (!Get.isRegistered<HomeController>()) {
+      Get.put(HomeController());
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -24,16 +30,19 @@ class HomeView extends GetView<HomeController> {
               // Header: Avatar, Name, Location, Bell
               Row(
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        AppAssets.userAvatar,
-                        fit: BoxFit.cover,
+                  GestureDetector(
+                    onTap: () => Get.toNamed(AppRoutes.profile),
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          AppAssets.userAvatar,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ),
@@ -106,7 +115,7 @@ class HomeView extends GetView<HomeController> {
 
               const SizedBox(height: 22),
 
-              // Categories Header
+              // Categories Header with "See All >"
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -120,7 +129,7 @@ class HomeView extends GetView<HomeController> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () => Get.toNamed(AppRoutes.categories),
                     child: const Row(
                       children: [
                         Text(
@@ -145,7 +154,7 @@ class HomeView extends GetView<HomeController> {
 
               const SizedBox(height: 16),
 
-              // Categories List (from GetX Controller)
+              // Horizontal Categories List
               Obx(
                 () => Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -154,13 +163,9 @@ class HomeView extends GetView<HomeController> {
                         (cat) => CategoryItemWidget(
                           category: cat,
                           onTap: () {
-                            Get.snackbar(
-                              'Category Selected',
-                              'Viewing ${cat.name}',
-                              snackPosition: SnackPosition.BOTTOM,
-                              duration: const Duration(milliseconds: 800),
-                              backgroundColor: AppColors.primaryTeal,
-                              colorText: Colors.white,
+                            Get.toNamed(
+                              AppRoutes.categoryDetail,
+                              arguments: {'category': cat.name},
                             );
                           },
                         ),
@@ -184,7 +189,7 @@ class HomeView extends GetView<HomeController> {
 
               const SizedBox(height: 16),
 
-              // Most Popular Grid (from GetX Controller)
+              // Most Popular 2-Column Grid
               Obx(
                 () => GridView.builder(
                   shrinkWrap: true,
@@ -198,9 +203,17 @@ class HomeView extends GetView<HomeController> {
                   ),
                   itemBuilder: (context, index) {
                     final item = controller.popularItems[index];
-                    return FoodCardWidget(
-                      item: item,
-                      onAdd: () => controller.addToCart(item),
+                    return GestureDetector(
+                      onTap: () {
+                        Get.toNamed(
+                          AppRoutes.categoryDetail,
+                          arguments: {'category': item.category},
+                        );
+                      },
+                      child: FoodCardWidget(
+                        item: item,
+                        onAdd: () => controller.addToCart(item),
+                      ),
                     );
                   },
                 ),
@@ -211,117 +224,7 @@ class HomeView extends GetView<HomeController> {
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(
-            top: BorderSide(
-              color: Colors.grey.shade200,
-              width: 1,
-            ),
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Obx(
-              () => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavItem(
-                    index: 0,
-                    icon: Icons.home_rounded,
-                    label: 'Home',
-                    isActive: controller.currentNavIndex.value == 0,
-                    activeColor: AppColors.accentGold,
-                    onTap: () => controller.changeNavIndex(0),
-                  ),
-                  _buildNavItem(
-                    index: 1,
-                    icon: Icons.shopping_cart_outlined,
-                    label: 'Cart',
-                    isActive: controller.currentNavIndex.value == 1,
-                    activeColor: AppColors.accentGold,
-                    badgeCount: controller.cartCount.value,
-                    onTap: () => controller.changeNavIndex(1),
-                  ),
-                  _buildNavItem(
-                    index: 2,
-                    icon: Icons.person_outline_rounded,
-                    label: 'Profile',
-                    isActive: controller.currentNavIndex.value == 2,
-                    activeColor: AppColors.accentGold,
-                    onTap: () => controller.changeNavIndex(2),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required int index,
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required Color activeColor,
-    required VoidCallback onTap,
-    int badgeCount = 0,
-  }) {
-    final color = isActive ? activeColor : AppColors.textGrey;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Icon(icon, color: color, size: 26),
-              if (badgeCount > 0)
-                Positioned(
-                  right: -6,
-                  top: -4,
-                  child: Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryTeal,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 14,
-                      minHeight: 14,
-                    ),
-                    child: Text(
-                      '$badgeCount',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 3),
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 11,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-              color: color,
-            ),
-          ),
-        ],
-      ),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 0),
     );
   }
 }
